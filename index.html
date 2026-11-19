@@ -1,24 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Caída de árboles, CDMX, mapa interactivo y riesgos urbanos</title>
+    <title>Caída de Árboles en la CDMX: Mapa Interactivo de Riesgos Urbanos</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         #map { width: 100%; height: 100vh; margin: 0; padding: 0; }
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
-        .search-panel {
+        .right-sidebar {
             position: fixed;
             top: 15px;
             right: 15px;
             z-index: 1000;
+            width: 280px;
+            max-height: calc(100vh - 30px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-panel {
             background: rgba(255, 255, 255, 0.96);
             padding: 14px 16px;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-            width: 280px;
             border-top: 4px solid #0f766e;
         }
         .search-panel h3 {
@@ -77,25 +85,87 @@
         .reset-btn:hover {
             background: #1e293b;
         }
+
+        .meta-card {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 12px 14px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+            border-top: 4px solid #0284c7;
+            font-size: 11px;
+            line-height: 1.45;
+            color: #1e293b;
+        }
+        .meta-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: bold;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+        .meta-author {
+            margin: 0 0 6px 0;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .meta-context {
+            margin: 0 0 7px 0;
+            color: #334155;
+        }
+        .apa-citation {
+            margin: 0;
+            padding-left: 14px;
+            text-indent: -14px;
+            color: #475569;
+            font-size: 10.5px;
+        }
+
+        @media (max-width: 640px) {
+            .right-sidebar {
+                top: auto;
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                width: auto;
+                max-height: 44vh;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="search-panel">
-        <h3>🔍 Busca tu Alcaldía y Colonia</h3>
+    <div class="right-sidebar">
+        <div class="search-panel">
+            <h3>🔍 Busca tu Alcaldía y Colonia</h3>
 
-        <label for="alcaldiaSelect">Alcaldía</label>
-        <select id="alcaldiaSelect">
-            <option value="">Todas las alcaldías</option>
-        </select>
+            <label for="alcaldiaSelect">Alcaldía</label>
+            <select id="alcaldiaSelect">
+                <option value="">Todas las alcaldías</option>
+            </select>
 
-        <label for="coloniaInput">Colonia</label>
-        <input type="text" id="coloniaInput" list="coloniasList" placeholder="Escribe o elige una colonia..." />
-        <datalist id="coloniasList"></datalist>
+            <label for="coloniaInput">Colonia</label>
+            <input type="text" id="coloniaInput" list="coloniasList" placeholder="Escribe o elige una colonia..." />
+            <datalist id="coloniasList"></datalist>
 
-        <div class="panel-footer">
-            <span class="result-badge" id="resultCount">Cargando...</span>
-            <button type="button" class="reset-btn" id="resetBtn">Limpiar</button>
+            <div class="panel-footer">
+                <span class="result-badge" id="resultCount">Cargando...</span>
+                <button type="button" class="reset-btn" id="resetBtn">Limpiar</button>
+            </div>
         </div>
+
+        <aside class="meta-card" aria-label="Créditos y referencia académica">
+            <span class="meta-badge">GIS DAY • DASONOMÍA URBANA</span>
+            <p class="meta-author">Autor: Jesús Alejandro Alvarado Martínez</p>
+            <p class="meta-context">
+                Derivado de la investigación <em>Retos de la dasonomía urbana</em>, presentada en la Mesa 5 «Desarrollo Rural, agroecología y cambio climático» (p. 276) del 15° Congreso Internacional de Investigación en Ciencias Básicas y Agronómicas, Universidad Autónoma Chapingo.
+            </p>
+            <p class="apa-citation">
+                Alvarado Martínez, J. A. (2026). Retos de la dasonomía urbana derivados del evento meteorológico atípico de junio 2026: Análisis geoespacial y sinergia de factores. En <em>Memoria del 15° Congreso Internacional de Investigación en Ciencias Básicas y Agronómicas: Mesa 5. Desarrollo Rural, agroecología y cambio climático</em> (p. 276). Universidad Autónoma Chapingo.
+            </p>
+        </aside>
     </div>
 
     <div id="map"></div>
