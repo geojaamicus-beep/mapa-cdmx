@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,526 +7,476 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         #map { width: 100%; height: 100vh; margin: 0; padding: 0; }
-        body { margin: 0; padding: 0; }
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+
+        .search-panel {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 14px 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            width: 280px;
+            border-top: 4px solid #0f766e;
+        }
+        .search-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 15px;
+            color: #0f172a;
+        }
+        .search-panel label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #334155;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        .search-panel select,
+        .search-panel input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #0f172a;
+            background: #fff;
+        }
+        .search-panel select:focus,
+        .search-panel input:focus {
+            outline: none;
+            border-color: #0f766e;
+        }
+        .panel-footer {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .result-badge {
+            font-size: 12px;
+            font-weight: bold;
+            color: #0f766e;
+            background: #f0fdfa;
+            padding: 5px 8px;
+            border-radius: 6px;
+        }
+        .reset-btn {
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background: #1e293b;
+        }
     </style>
 </head>
 <body>
+    <div class="search-panel">
+        <h3>🔍 Busca tu Alcaldía y Colonia</h3>
+
+        <label for="alcaldiaSelect">Alcaldía</label>
+        <select id="alcaldiaSelect">
+            <option value="">Todas las alcaldías</option>
+        </select>
+
+        <label for="coloniaInput">Colonia</label>
+        <input type="text" id="coloniaInput" list="coloniasList" placeholder="Escribe o elige una colonia..." />
+        <datalist id="coloniasList"></datalist>
+
+        <div class="panel-footer">
+            <span class="result-badge" id="resultCount">Cargando...</span>
+            <button type="button" class="reset-btn" id="resetBtn">Limpiar</button>
+        </div>
+    </div>
+
     <div id="map"></div>
+
     <script>
         var map = L.map('map').setView([19.4326, -99.1332], 11);
-        
+
         // Mapa base de Esri (libérrimo y sin restricciones de acceso)
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
             attribution: 'Tiles &copy; Esri'
         }).addTo(map);
 
-        L.marker([19.49787337067781, -99.2099051782118]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-01 00:00:00 06:20:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> HACIENDA EL ROSARIO");
-        
-        L.marker([19.352616939129568, -99.30640808635904]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-01 00:00:00 21:57:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> ZENTLAPATL");
-        
-        L.marker([19.298769966374127, -99.2422024511181]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 08:32:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN NICOLAS TOTOLAPA");
-        
-        L.marker([19.34683412750461, -99.12030851856737]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 16:11:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PASEOS DE TAXQUEÑA");
-        
-        L.marker([19.360930972656586, -99.12237558426484]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:03:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> HEROES DE CHURUBUSCO");
-        
-        L.marker([19.404471721010935, -99.17815454367381]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:12:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ESCANDON Ira. SECCION");
-        
-        L.marker([19.29018456090417, -99.14941056906405]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:23:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN LORENZO HUIPULCO");
-        
-        L.marker([19.32957197881891, -99.28980981723784]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:46:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SANTA ROSA XOCHIAC");
-        
-        L.marker([19.365212860617174, -99.18808151881632]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN JOSE INSURGENTES");
-        
-        L.marker([19.442625551358326, -99.07746133308338]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 07:43:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> PEÑON DE LOS BAÑOS");
-        
-        L.marker([19.34138367315052, -99.07025383241185]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 14:24:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PARAJE SAN JUAN");
-        
-        L.marker([19.303053908065554, -99.13775252167113]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 14:51:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> VERGEL DE COYOACAN");
-        
-        L.marker([19.491274620226598, -99.09300800837309]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 16:28:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VASCO DE QUIROGA");
-        
-        L.marker([19.38943915865212, -99.1410630332859]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 18:53:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> POSTAL");
-        
-        L.marker([19.397221935587634, -99.138879218011]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 23:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> ALAMOS");
-        
-        L.marker([19.375963518490092, -99.14240366375243]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 05:45:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN SIMON TOLNAHUAC");
-        
-        L.marker([19.329948803409476, -99.26174542773896]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 07:35:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SAN BARTOLO AMEYALCO");
-        
-        L.marker([19.349520542871666, -99.2510367339674]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:07:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> BOSQUES DE TARANGO");
-        
-        L.marker([19.395144945645036, -99.15901093487568]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:10:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE PONIENTE");
-        
-        L.marker([19.371561736838974, -99.19223108551485]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:55:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TORRES DE MIXCOAC");
-        
-        L.marker([19.344847168822504, -99.13157036311492]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:15:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PASEOS DE TAXQUEÑA");
-        
-        L.marker([19.340328869866592, -99.18343547145726]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:46:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> COPILCO EL BAJO");
-        
-        L.marker([19.373944825011737, -99.1861870098284]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> INSURGENTES MIXCOAC");
-        
-        L.marker([19.32432383278865, -99.14296813251686]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 12:54:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PUEBLO DE SAN PABLO TEPETLAPA");
-        
-        L.marker([19.340380722511373, -99.21070275391433]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 21:45:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> OLIVAR DE LOS PADRES");
-        
-        L.marker([19.467486962000716, -99.12582829111427]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 09:13:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VALLEJO");
-        
-        L.marker([19.336611263345777, -99.29027921473677]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 09:54:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> SAN MATEO TLALTENANGO");
-        
-        L.marker([19.41969533268676, -99.12973494662697]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 10:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> TRANSITO");
-        
-        L.marker([19.33352356377307, -99.200783348789]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 12:47:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> PUERTAS DEL PEDREGAL");
-        
-        L.marker([19.352398739881764, -99.19593148678356]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 09:33:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TLACOPAC");
-        
-        L.marker([19.33306792651316, -99.27917239209437]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 18:18:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SAN BARTOLO AMEYALCO");
-        
-        L.marker([19.33418586031928, -99.1140824651358]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 23:40:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> CULHUACAN CTM V");
-        
-        L.marker([19.421980862999987, -99.17403005445408]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 23:43:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
-        
-        L.marker([19.33600346118933, -99.21345805975845]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 18:35:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> EL MAESTRO");
-        
-        L.marker([19.428571412607642, -99.12761773140832]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 19:37:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
-        
-        L.marker([19.53958570776069, -99.13795197295808]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 20:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> CASTILLO GRANDE");
-        
-        L.marker([19.47008007478522, -99.1266401939361]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 20:32:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> INDUSTRIAL");
-        
-        L.marker([19.45033270294949, -99.08115198260214]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 23:10:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
-        
-        L.marker([19.41711204962947, -99.09882372866115]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 00:52:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> JARDIN BALBUENA");
-        
-        L.marker([19.381898959354636, -99.18488186005153]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 05:22:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SANTA MARIA NONOALCO");
-        
-        L.marker([19.304564488163955, -99.33297039159949]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 06:45:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LA PILA");
-        
-        L.marker([19.387152322792268, -99.10091031660211]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 08:05:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> JUVENTINO ROSAS");
-        
-        L.marker([19.465566668288005, -99.10429354285185]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 08:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> FAJA DE ORO");
-        
-        L.marker([19.447608446470202, -99.13375843009892]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 09:48:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> MORELOS");
-        
-        L.marker([19.105095526303778, -99.11384844480594]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 15:00:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
-        
-        L.marker([19.289945031230978, -99.02962892238418]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 15:57:00<br><b>Alcaldía:</b> TLAHUAC<br><b>Colonia:</b> LA CONCHITA ZAPOTITLAN");
-        
-        L.marker([19.401528575886903, -99.16541742883967]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA SUR");
-        
-        L.marker([19.385737868690867, -99.13581248814427]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:12:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> VILLA DE CORTES");
-        
-        L.marker([19.327597297313307, -99.11462052881954]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:54:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> CTM. CULHUACAN VI SECCION");
-        
-        L.marker([19.504512169717255, -99.09668472863919]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:58:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> AMPL. GABRIEL HERNANDEZ");
-        
-        L.marker([19.598952479659644, -99.13525617755015]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:00:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
-        
-        L.marker([19.47080352017802, -99.07772244799943]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:02:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
-        
-        L.marker([19.485541063438426, -99.12898685283032]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:04:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA");
-        
-        L.marker([19.39438443551526, -99.12620058074899]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:10:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> SAN FRANCISCO XICALTONGO");
-        
-        L.marker([19.444686494485786, -99.15972599866252]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:15:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.364267629524527, -99.13258575497288]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:37:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> AMPL. SINATEL");
-        
-        L.marker([19.438541095060103, -99.18810865075103]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:38:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> AMPL. GRANADA");
-        
-        L.marker([19.32864096917305, -99.13466090977302]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:30:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> AVANTE");
-        
-        L.marker([19.407328530686932, -99.19475898508426]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:49:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> AMPL. DANIEL GARZA");
-        
-        L.marker([19.39201477538496, -99.1627126112541]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:52:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE NORTE");
-        
-        L.marker([19.397453437019823, -99.10339291175895]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:05:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> GRANJAS MEXICO");
-        
-        L.marker([19.314371574906442, -99.0895948382239]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:14:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> LOMAS ESTRELLA 2da. SECCION");
-        
-        L.marker([19.42743431687203, -99.14923079741797]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
-        
-        L.marker([19.398793933332186, -99.15083328720945]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 20:04:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
-        
-        L.marker([19.384825280891466, -99.13557364946892]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 20:05:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NATIVITAS");
-        
-        L.marker([19.361133705737434, -99.26980302445354]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 22:41:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> CRUZ MANCA");
-        
-        L.marker([0.0, -103.4887438843872]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 22:57:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES ORIENTE");
-        
-        L.marker([19.458275739710007, -99.10056360075916]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-09 00:00:00 11:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> NUEVA TENOCHTITLAN");
-        
-        L.marker([19.277321907109577, -99.23011285996485]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-09 00:00:00 23:16:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> PEDREGAL DE SAN NICOLAS");
-        
-        L.marker([19.419972347007402, -99.13405966590048]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 01:47:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
-        
-        L.marker([19.43128052195108, -99.17366844445125]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 08:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANZURES");
-        
-        L.marker([19.353777652630363, -99.01622463634095]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 15:59:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PARAJE ZACATEPEC");
-        
-        L.marker([19.442416249320395, -99.18984695877911]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 19:30:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> GRANADA");
-        
-        L.marker([19.369321400528534, -99.28176700186867]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 14:54:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LOMAS DE VISTA HERMOSA");
-        
-        L.marker([19.480512219362343, -99.10769538307625]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:34:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VILLA GUSTAVO A. MADERO");
-        
-        L.marker([19.48685309447313, -99.11300736137964]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:37:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VILLA GUSTAVO A. MADERO");
-        
-        L.marker([19.43841605987797, -99.1473927073038]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:43:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
-        
-        L.marker([19.474749236091412, -99.15395256914854]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:53:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PRO-HOGAR");
-        
-        L.marker([19.42368910881359, -99.17381278587816]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:02:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
-        
-        L.marker([19.489632380608732, -99.14431336001168]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN BARTOLO ATEPEHUACAN");
-        
-        L.marker([19.41313672536086, -99.17989751451428]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:15:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CONDESA");
-        
-        L.marker([19.34038298073737, -99.25167016689574]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:17:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> VILLA VERDUN");
-        
-        L.marker([19.436910609895406, -99.18297209873626]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:50:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANZURES");
-        
-        L.marker([19.432606865928374, -99.14522504988798]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:18:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
-        
-        L.marker([19.446714118579116, -99.20177959093101]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:35:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
-        
-        L.marker([19.448388135064278, -99.17350562540814]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:36:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
-        
-        L.marker([19.431124572236737, -99.16649522625043]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:54:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CUAUHTEMOC");
-        
-        L.marker([19.452288776345792, -99.18608567190937]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:57:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TACUBA");
-        
-        L.marker([19.41152208954622, -99.17680969675875]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:05:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO CONDESA");
-        
-        L.marker([19.44482828233536, -99.19911929617149]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:20:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
-        
-        L.marker([19.44582255114838, -99.19895855302366]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:40:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
-        
-        L.marker([19.453322108291253, -99.1917936749875]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 22:48:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> SAN JUANICO");
-        
-        L.marker([19.446273518406354, -99.1826205700072]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 23:57:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> MARIANO ESCOBEDO");
-        
-        L.marker([19.52386713309925, -99.15290292200851]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:14:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SANTIAGO ATEPETLAC");
-        
-        L.marker([19.481422914610086, -99.178857901272]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:15:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SANTO TOMAS");
-        
-        L.marker([19.446273527995814, -99.18261104317325]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TORRE BLANCA");
-        
-        L.marker([19.43430522178122, -99.20250729793253]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 07:41:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POLANCO 2da. SECCION");
-        
-        L.marker([19.44528590848502, -99.19379438368239]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 08:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> PENSIL SUR");
-        
-        L.marker([19.448753375709195, -99.17894592606663]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 08:49:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
-        
-        L.marker([19.4238925784695, -99.14817975290437]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 13:24:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.42235842416106, -99.19385291679887]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 15:26:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC");
-        
-        L.marker([19.484538385670877, -99.20655281625791]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:45:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN JUAN TLIHUACA");
-        
-        L.marker([19.513879859169776, -99.14336271927458]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:54:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> NUEVA VALLEJO");
-        
-        L.marker([19.396408224354868, -99.1393452014978]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:58:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> ALAMOS");
-        
-        L.marker([19.361912442386547, -99.26876641939126]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 15:44:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SANTA FE");
-        
-        L.marker([19.410135527700643, -99.22155538300066]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 22:56:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
-        
-        L.marker([19.443386188511397, -99.15852436426891]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 23:03:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.302218579590313, -99.14281565967944]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-13 00:00:00 01:05:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> EJIDO VIEJO SANTA URSULA");
-        
-        L.marker([19.40731595130814, -99.22152299084206]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-13 00:00:00 07:50:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC Ira. SECCION");
-        
-        L.marker([19.339026291079378, -99.20168501148856]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 17:23:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> ERMITA TIZAPAN");
-        
-        L.marker([19.467151071142222, -99.12799090685455]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 19:59:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VALLEJO");
-        
-        L.marker([19.341539619409666, -99.17448731518134]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 21:31:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> ROMERO DE TERREROS");
-        
-        L.marker([19.394245708509143, -99.15379100626102]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 00:32:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
-        
-        L.marker([19.423802237175927, -99.14814156881839]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 11:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.418273743043283, -99.19371472067375]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 14:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC Ira. SECCION");
-        
-        L.marker([19.422860638341568, -99.17069707183919]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 17:18:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
-        
-        L.marker([19.394187739459152, -99.04480970103228]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 17:22:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> JUAN ESCUTIA");
-        
-        L.marker([19.471888062063247, -99.18839483457734]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 18:41:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NEXTENGO");
-        
-        L.marker([19.42471671017786, -99.19425578805489]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 19:59:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC Ira. SECCION");
-        
-        L.marker([19.39199407906896, -99.18439802376291]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 15:46:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN PEDRO DE LOS PINOS");
-        
-        L.marker([19.434857223839444, -99.16619419232]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 17:52:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CUAUHTEMOC");
-        
-        L.marker([19.28565311952302, -99.14275370393526]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 22:36:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> GUADALUPE");
-        
-        L.marker([19.42815302110006, -99.20859617070005]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 22:44:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
-        
-        L.marker([19.440176916028125, -99.15973111403484]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 16:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SAN RAFAEL");
-        
-        L.marker([19.37979647914393, -99.17241391363437]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 17:18:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
-        
-        L.marker([19.437970181257956, -99.22881408069985]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 18:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE SOTELO");
-        
-        L.marker([19.431083932550372, -99.12738154424235]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 23:04:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
-        
-        L.marker([19.4843174469147, -99.12110532859262]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 23:06:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> TEPEYAC INSURGENTES");
-        
-        L.marker([19.537681366827034, -99.14627197390458]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 00:36:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> ARBOLILLO III");
-        
-        L.marker([19.386096222513398, -99.18093441115441]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 00:44:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NAPOLES");
-        
-        L.marker([19.489594688608843, -99.18568037795208]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 01:35:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MARCOS");
-        
-        L.marker([19.36733997037868, -99.12005693252308]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 07:41:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
-        
-        L.marker([19.42337632364726, -99.1495604856178]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 07:45:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.47842371382834, -99.12330208781036]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 08:14:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> INDUSTRIAL");
-        
-        L.marker([19.39756842274827, -99.18601385909402]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 08:33:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TACUBAYA");
-        
-        L.marker([19.388733235661455, -99.18280392885393]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 09:28:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN PEDRO DE LOS PINOS");
-        
-        L.marker([19.372267064051666, -99.20827737232977]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 17:36:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> HOGAR Y REDENCION");
-        
-        L.marker([19.414006150433938, -99.1685447102746]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 21:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO CUAUHTEMOC");
-        
-        L.marker([19.425878858857075, -99.0975906896714]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 22:05:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> MOCTEZUMA 2da. SESION");
-        
-        L.marker([19.195354128954037, -99.0966264472305]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 22:29:00<br><b>Alcaldía:</b> MILPA ALTA<br><b>Colonia:</b> SAN SALVADOR CUAUHTENCO");
-        
-        L.marker([19.394164314910224, -99.2512193936346]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 23:53:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
-        
-        L.marker([19.343469223274674, -99.18798043125207]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 06:51:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> CHIMALISTAC");
-        
-        L.marker([19.285667240564067, -99.2411362553337]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 09:33:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> PEDREGAL DE SAN NICOLAS 1ra. SECCION");
-        
-        L.marker([19.3904464129186, -99.04434201943886]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 11:49:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> JUAN ESCUTIA");
-        
-        L.marker([19.413181143333087, -99.16147636763759]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 12:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
-        
-        L.marker([19.391096323487623, -99.16894968076389]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 13:39:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DEL VALLE NORTE");
-        
-        L.marker([19.239556848376754, -99.16031632290844]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 17:40:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN ANDRES TOTOLTEPEC");
-        
-        L.marker([19.50217147200514, -99.20514567051464]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 18:06:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PRADOS DEL ROSARIO UH. TRABAJADORES DE PEMEX");
-        
-        L.marker([19.288177747261006, -99.12612850314476]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 20:16:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> NARCISO MENDOZA");
-        
-        L.marker([19.40701157201529, -99.16827081579994]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 22:57:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO");
-        
-        L.marker([19.431216676127367, -99.18345154578819]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 23:31:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> RINCON DEL BOSQUE POLANCO V SECCION");
-        
-        L.marker([19.415093659287383, -99.1439998108077]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 01:27:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.443017243299714, -99.1567044131861]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 02:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.364624690227263, -99.14994484493255]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 02:40:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES SUR");
-        
-        L.marker([19.425668006728067, -99.1540777428672]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 03:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
-        
-        L.marker([19.379841683545887, -99.1723949152387]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 04:08:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
-        
-        L.marker([19.360621453277513, -99.27987625837474]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 09:27:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> SANTA FE");
-        
-        L.marker([19.41614780202672, -99.14800128185998]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 09:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.33691158457832, -99.20166337376537]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 13:52:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TIZAPAN");
-        
-        L.marker([19.397793319391383, -99.1094313708444]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 19:17:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> GRANJAS MEXICO");
-        
-        L.marker([19.3982998582748, -99.1472041643536]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-21 00:00:00 18:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE PONIENTE");
-        
-        L.marker([19.41261287948044, -99.17019108006278]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-21 00:00:00 22:25:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO");
-        
-        L.marker([19.323235707032257, -99.15832246855865]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 09:57:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> AJUSCO");
-        
-        L.marker([19.413089617421235, -99.14115961866162]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 12:00:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
-        
-        L.marker([19.328396991642563, -99.04052675992725]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 15:13:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> DESARROLLO URBANO QUETZALCOATL");
-        
-        L.marker([19.37455389232109, -99.17342732422179]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 16:30:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> TLACOQUEMECATL");
-        
-        L.marker([19.44280176759521, -99.14409091613526]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:13:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
-        
-        L.marker([19.440847105154482, -99.1776321261644]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:22:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
-        
-        L.marker([19.415102346734653, -99.15539176605733]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:25:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA");
-        
-        L.marker([19.407920389455477, -99.1410503871201]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
-        
-        L.marker([19.36599828931703, -99.2422920572783]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:44:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> ESTADO DE HIDALGO");
-        
-        L.marker([19.364597203984555, -99.17088391536794]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE SUR");
-        
-        L.marker([19.41329409342217, -99.14544601662114]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 18:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.41355326342689, -99.14903715340657]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 18:57:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.34994645445086, -99.00568420297589]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 19:35:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SANTIAGO ACAHUALTEPEC 2da. AMPLIACION");
-        
-        L.marker([19.31834542629324, -99.25500627534561]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 22:36:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> LAS CRUCES");
-        
-        L.marker([19.283531495621972, -99.22206031552383]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 23:28:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> TERRITORIO TORRES HEROES DE PADIERNA");
-        
-        L.marker([19.362162692979688, -99.1648539814267]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 00:10:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> XOCO");
-        
-        L.marker([19.28400671244947, -99.22513507746895]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 06:42:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> HEROES DE PADIERNA");
-        
-        L.marker([19.29992002538141, -99.23348536595887]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 07:01:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN NICOLAS TOTOLAPAN");
-        
-        L.marker([19.490754160366137, -99.10288024304415]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 13:58:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LA DINAMITA");
-        
-        L.marker([19.33055752517949, -99.03770932772616]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 16:37:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> DESARROLLO URBANO QUETZALCOATL");
-        
-        L.marker([19.48216808117037, -99.17463739705174]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 21:55:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SANTO TOMAS");
-        
-        L.marker([19.32265641468266, -99.04814109970157]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 22:04:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> MIXCOATL");
-        
-        L.marker([19.33945957992122, -99.31122949572125]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 06:01:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LOMA DEL PADRE");
-        
-        L.marker([19.418192331735813, -99.1562710224371]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 20:08:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
-        
-        L.marker([19.41390096481918, -99.1649917904184]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 20:36:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
-        
-        L.marker([19.485611602982303, -99.10357262409906]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 07:51:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> CONSTITUCION DE LA REPUBLICA");
-        
-        L.marker([19.446132606333062, -99.17892399954404]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 08:18:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> MARINA NACIONAL");
-        
-        L.marker([19.40494744153399, -99.14064779726804]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 11:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ALGARIN");
-        
-        L.marker([19.453468257415835, -99.16244033777285]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 13:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.41951757118393, -99.1493759748105]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:14:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.393370909770923, -99.20666611784398]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:35:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> MOLINO DE SANTO DOMINGO");
-        
-        L.marker([19.330079194869004, -99.20182634843219]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:36:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> JARDINES DEL PEDREGAL");
-        
-        L.marker([19.41428745995984, -99.21837966951267]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:38:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
-        
-        L.marker([19.48868356865769, -99.13236272821882]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:45:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA");
-        
-        L.marker([19.446984061713714, -99.1465144398813]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 19:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
-        
-        L.marker([19.392140427013477, -99.25735904607265]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 21:22:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
-        
-        L.marker([19.38482214640491, -99.16154362634992]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 22:37:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
-        
-        L.marker([19.420725983548895, -99.22251273971813]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 10:39:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
-        
-        L.marker([19.413967467054242, -99.13956018022303]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 14:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
-        
-        L.marker([19.465685423921304, -99.1637006696706]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 14:48:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NUEVA SANTA MARIA");
-        
-        L.marker([19.280466201507963, -99.22339810932547]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:14:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> HEROES DE PADIERNA");
-        
-        L.marker([19.45555075667413, -99.19511182324653]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:18:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LEGARIA");
-        
-        L.marker([19.308432481466255, -99.17799317974885]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:53:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PEDREGAL DE CARRAZCO");
-        
-        L.marker([19.386042432045134, -99.2558447824158]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 16:48:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
-        
-        L.marker([19.52090214351775, -99.15385325536054]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 17:43:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> GUADALUPE PROLETARIA");
-        
-        L.marker([19.466799637359333, -99.18886535711584]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 17:54:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> ANGEL ZIMBRON");
-        
-        L.marker([19.476535698307867, -99.2027979311396]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 19:04:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MIGUEL AMANTLA");
-        
-        L.marker([19.453884904345255, -99.16139274983898]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 20:04:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.397957810481614, -99.24617749660699]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 20:30:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
-        
-        L.marker([19.480536530278123, -99.20513747510803]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 21:43:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN ANTONIO");
-        
-        L.marker([19.358741218853307, -99.17068737954558]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 22:08:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> DEL CARMEN");
-        
-        L.marker([19.409407217597476, -99.09125644295766]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 22:55:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> GENERAL IGNACIO ZARAGOZA");
-        
-        L.marker([19.484313346826102, -99.12708959252862]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:26:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA SUR");
-        
-        L.marker([19.325320739676446, -99.22155504886452]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:42:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN JERONIMO LIDICE");
-        
-        L.marker([19.514171702915235, -99.20610435235344]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:50:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> EL ROSARIO");
-        
-        L.marker([19.339670208732127, -99.23732150936543]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 00:40:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> LA JOYITA");
-        
-        L.marker([19.51218604644812, -99.19570385230956]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 16:29:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> ROSARIO");
-        
-        L.marker([19.485380585859744, -99.19687229694368]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 16:36:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PETROLERA");
-        
-        L.marker([19.50656747180001, -99.1933526236492]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 19:36:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MARTIN XOCHINAHUAC");
-        
-        L.marker([19.467363735522294, -99.1455704050671]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 07:52:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> LA RAZA");
-        
-        L.marker([19.462711603264037, -99.14302232498848]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 08:31:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SAN SIMON TOLNAHUAC");
-        
-        L.marker([19.52054048756119, -99.15405306830766]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 16:00:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> GUADALUPE PROLETARIA");
-        
-        L.marker([19.365256664058865, -99.15071671616815]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 19:43:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES NORTE");
-        
-        L.marker([19.435929461705033, -99.12512759855501]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 19:46:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
-        
-        L.marker([19.42257383385807, -99.21900989107408]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 20:11:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC SECCION I");
-        
-        L.marker([19.457836628716276, -99.17806982709996]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 21:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPOTLA");
-        
-        L.marker([19.363238802324716, -99.11734015064097]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 22:16:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
-        
-        L.marker([19.345979619855623, -99.1512702716307]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 01:06:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> BARRIO SAN LUCAS");
-        
-        L.marker([19.460026480676788, -99.16552429979728]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 02:20:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NUEVA SANTA MARIA");
-        
-        L.marker([19.410533241791576, -99.15094888115478]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 07:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
-        
-        L.marker([19.263275523868376, -99.16540200034582]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 08:19:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN PEDRO MARTIR");
-        
-        L.marker([19.397605669027556, -99.16622300563711]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 08:35:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE NORTE");
-        
-        L.marker([19.29163105504673, -99.11059795915307]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 11:37:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> RINCONADA COAPA 1ra. SECCION");
-        
-        L.marker([19.403301045071434, -99.1307029532184]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 16:54:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ASTURIAS");
-        
-        L.marker([19.376044697479365, -99.14260371245805]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 16:59:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN SIMON TICUMAC");
-        
-        L.marker([19.474241100184482, -99.2176499543646]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:28:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> AMPL. SAN PEDRO XALPA");
-        
-        L.marker([19.384246694039206, -99.14744865971917]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> VERTIZ NARVARTE");
-        
-        L.marker([19.297135621659088, -99.12345123207925]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:39:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> RESIDENCIAL ACOXPA");
-        
-        L.marker([19.476131085784854, -99.06600478479974]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 19:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LA PRADERA");
-        
-        L.marker([19.369543702698742, -99.18615344420418]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 19:45:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN JOSE INSURGENTES");
-        
-        L.marker([19.2921472666209, -99.12303822150238]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 21:21:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> VILLA COAPA");
-        
-        L.marker([19.449780531067486, -99.16304639902714]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 07:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
-        
-        L.marker([19.294934951690724, -99.11668222994435]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 09:57:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> GRANJAS COAPA");
-        
-        L.marker([19.459799091158033, -99.13452110722432]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 11:09:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> PERALVILLO");
-        
-        L.marker([19.374420646660152, -99.16107628418804]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 11:34:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SANTA CRUZ ATOYAC");
-        
-        L.marker([19.38746368604087, -99.14779439907758]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 15:17:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
-        
-        L.marker([19.504272816866326, -99.15498115606]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 18:49:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> UH. PATERA VALLEJO");
-        
-        L.marker([19.46507969081947, -99.08500861920449]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 20:30:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> PUEBLO SAN JUAN DE ARAGON");
-        
-        L.marker([19.45505351287331, -99.09294923458522]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
-        
-        L.marker([19.38704210693523, -99.08682510705431]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:29:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PASEOS DE CHURUBUSCO");
-        
-        L.marker([19.528349599982768, -99.15284994904931]).addTo(map).bindPopup("<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:30:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> ACUEDUCTO DE GUADALUPE");
-        
+        var markersLayer = L.layerGroup().addTo(map);
+        var incidentes = [];
+
+        function normalizarTexto(texto) {
+            return (texto || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .trim();
+        }
+
+        function agregarIncidente(lat, lng, popupHtml) {
+            var matchAlcaldia = popupHtml.match(/<b>Alcaldía:<\/b>\s*([^<]+)/i);
+            var matchColonia = popupHtml.match(/<b>Colonia:<\/b>\s*([^<]+)/i);
+
+            var alcaldia = matchAlcaldia ? matchAlcaldia[1].trim() : '';
+            var colonia = matchColonia ? matchColonia[1].trim() : '';
+
+            var marker = L.marker([lat, lng]).bindPopup(popupHtml);
+
+            incidentes.push({
+                lat: lat,
+                lng: lng,
+                alcaldia: alcaldia,
+                colonia: colonia,
+                alcaldiaNorm: normalizarTexto(alcaldia),
+                coloniaNorm: normalizarTexto(colonia),
+                marker: marker
+            });
+        }
+
+        agregarIncidente(19.49787337067781, -99.2099051782118, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-01 00:00:00 06:20:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> HACIENDA EL ROSARIO");
+        agregarIncidente(19.352616939129568, -99.30640808635904, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-01 00:00:00 21:57:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> ZENTLAPATL");
+        agregarIncidente(19.298769966374127, -99.2422024511181, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 08:32:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN NICOLAS TOTOLAPA");
+        agregarIncidente(19.34683412750461, -99.12030851856737, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 16:11:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PASEOS DE TAXQUEÑA");
+        agregarIncidente(19.360930972656586, -99.12237558426484, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:03:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> HEROES DE CHURUBUSCO");
+        agregarIncidente(19.404471721010935, -99.17815454367381, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:12:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ESCANDON Ira. SECCION");
+        agregarIncidente(19.29018456090417, -99.14941056906405, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:23:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN LORENZO HUIPULCO");
+        agregarIncidente(19.32957197881891, -99.28980981723784, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:46:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SANTA ROSA XOCHIAC");
+        agregarIncidente(19.365212860617174, -99.18808151881632, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-02 00:00:00 19:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN JOSE INSURGENTES");
+        agregarIncidente(19.442625551358326, -99.07746133308338, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 07:43:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> PEÑON DE LOS BAÑOS");
+        agregarIncidente(19.34138367315052, -99.07025383241185, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 14:24:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PARAJE SAN JUAN");
+        agregarIncidente(19.303053908065554, -99.13775252167113, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 14:51:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> VERGEL DE COYOACAN");
+        agregarIncidente(19.491274620226598, -99.09300800837309, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 16:28:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VASCO DE QUIROGA");
+        agregarIncidente(19.38943915865212, -99.1410630332859, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 18:53:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> POSTAL");
+        agregarIncidente(19.397221935587634, -99.138879218011, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-03 00:00:00 23:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> ALAMOS");
+        agregarIncidente(19.375963518490092, -99.14240366375243, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 05:45:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN SIMON TOLNAHUAC");
+        agregarIncidente(19.329948803409476, -99.26174542773896, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 07:35:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SAN BARTOLO AMEYALCO");
+        agregarIncidente(19.349520542871666, -99.2510367339674, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:07:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> BOSQUES DE TARANGO");
+        agregarIncidente(19.395144945645036, -99.15901093487568, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:10:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE PONIENTE");
+        agregarIncidente(19.371561736838974, -99.19223108551485, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 08:55:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TORRES DE MIXCOAC");
+        agregarIncidente(19.344847168822504, -99.13157036311492, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:15:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PASEOS DE TAXQUEÑA");
+        agregarIncidente(19.340328869866592, -99.18343547145726, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:46:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> COPILCO EL BAJO");
+        agregarIncidente(19.373944825011737, -99.1861870098284, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 09:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> INSURGENTES MIXCOAC");
+        agregarIncidente(19.32432383278865, -99.14296813251686, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 12:54:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PUEBLO DE SAN PABLO TEPETLAPA");
+        agregarIncidente(19.340380722511373, -99.21070275391433, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-04 00:00:00 21:45:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> OLIVAR DE LOS PADRES");
+        agregarIncidente(19.467486962000716, -99.12582829111427, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 09:13:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VALLEJO");
+        agregarIncidente(19.336611263345777, -99.29027921473677, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 09:54:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> SAN MATEO TLALTENANGO");
+        agregarIncidente(19.41969533268676, -99.12973494662697, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 10:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> TRANSITO");
+        agregarIncidente(19.33352356377307, -99.200783348789, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-05 00:00:00 12:47:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> PUERTAS DEL PEDREGAL");
+        agregarIncidente(19.352398739881764, -99.19593148678356, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 09:33:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TLACOPAC");
+        agregarIncidente(19.33306792651316, -99.27917239209437, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 18:18:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SAN BARTOLO AMEYALCO");
+        agregarIncidente(19.33418586031928, -99.1140824651358, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 23:40:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> CULHUACAN CTM V");
+        agregarIncidente(19.421980862999987, -99.17403005445408, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-06 00:00:00 23:43:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
+        agregarIncidente(19.33600346118933, -99.21345805975845, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 18:35:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> EL MAESTRO");
+        agregarIncidente(19.428571412607642, -99.12761773140832, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 19:37:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
+        agregarIncidente(19.53958570776069, -99.13795197295808, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 20:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> CASTILLO GRANDE");
+        agregarIncidente(19.47008007478522, -99.1266401939361, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 20:32:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> INDUSTRIAL");
+        agregarIncidente(19.45033270294949, -99.08115198260214, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-07 00:00:00 23:10:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
+        agregarIncidente(19.41711204962947, -99.09882372866115, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 00:52:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> JARDIN BALBUENA");
+        agregarIncidente(19.381898959354636, -99.18488186005153, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 05:22:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SANTA MARIA NONOALCO");
+        agregarIncidente(19.304564488163955, -99.33297039159949, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 06:45:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LA PILA");
+        agregarIncidente(19.387152322792268, -99.10091031660211, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 08:05:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> JUVENTINO ROSAS");
+        agregarIncidente(19.465566668288005, -99.10429354285185, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 08:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> FAJA DE ORO");
+        agregarIncidente(19.447608446470202, -99.13375843009892, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 09:48:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> MORELOS");
+        agregarIncidente(19.105095526303778, -99.11384844480594, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 15:00:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
+        agregarIncidente(19.289945031230978, -99.02962892238418, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 15:57:00<br><b>Alcaldía:</b> TLAHUAC<br><b>Colonia:</b> LA CONCHITA ZAPOTITLAN");
+        agregarIncidente(19.401528575886903, -99.16541742883967, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA SUR");
+        agregarIncidente(19.385737868690867, -99.13581248814427, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:12:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> VILLA DE CORTES");
+        agregarIncidente(19.327597297313307, -99.11462052881954, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:54:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> CTM. CULHUACAN VI SECCION");
+        agregarIncidente(19.504512169717255, -99.09668472863919, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 16:58:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> AMPL. GABRIEL HERNANDEZ");
+        agregarIncidente(19.598952479659644, -99.13525617755015, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:00:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
+        agregarIncidente(19.47080352017802, -99.07772244799943, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:02:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
+        agregarIncidente(19.485541063438426, -99.12898685283032, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:04:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA");
+        agregarIncidente(19.39438443551526, -99.12620058074899, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:10:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> SAN FRANCISCO XICALTONGO");
+        agregarIncidente(19.444686494485786, -99.15972599866252, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:15:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.364267629524527, -99.13258575497288, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:37:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> AMPL. SINATEL");
+        agregarIncidente(19.438541095060103, -99.18810865075103, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 17:38:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> AMPL. GRANADA");
+        agregarIncidente(19.32864096917305, -99.13466090977302, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:30:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> AVANTE");
+        agregarIncidente(19.407328530686932, -99.19475898508426, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:49:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> AMPL. DANIEL GARZA");
+        agregarIncidente(19.39201477538496, -99.1627126112541, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 18:52:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE NORTE");
+        agregarIncidente(19.397453437019823, -99.10339291175895, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:05:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> GRANJAS MEXICO");
+        agregarIncidente(19.314371574906442, -99.0895948382239, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:14:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> LOMAS ESTRELLA 2da. SECCION");
+        agregarIncidente(19.42743431687203, -99.14923079741797, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 19:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
+        agregarIncidente(19.398793933332186, -99.15083328720945, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 20:04:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
+        agregarIncidente(19.384825280891466, -99.13557364946892, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 20:05:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NATIVITAS");
+        agregarIncidente(19.361133705737434, -99.26980302445354, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 22:41:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> CRUZ MANCA");
+        agregarIncidente(0.0, -103.4887438843872, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-08 00:00:00 22:57:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES ORIENTE");
+        agregarIncidente(19.458275739710007, -99.10056360075916, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-09 00:00:00 11:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> NUEVA TENOCHTITLAN");
+        agregarIncidente(19.277321907109577, -99.23011285996485, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-09 00:00:00 23:16:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> PEDREGAL DE SAN NICOLAS");
+        agregarIncidente(19.419972347007402, -99.13405966590048, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 01:47:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
+        agregarIncidente(19.43128052195108, -99.17366844445125, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 08:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANZURES");
+        agregarIncidente(19.353777652630363, -99.01622463634095, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 15:59:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PARAJE ZACATEPEC");
+        agregarIncidente(19.442416249320395, -99.18984695877911, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-10 00:00:00 19:30:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> GRANADA");
+        agregarIncidente(19.369321400528534, -99.28176700186867, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 14:54:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LOMAS DE VISTA HERMOSA");
+        agregarIncidente(19.480512219362343, -99.10769538307625, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:34:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VILLA GUSTAVO A. MADERO");
+        agregarIncidente(19.48685309447313, -99.11300736137964, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:37:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VILLA GUSTAVO A. MADERO");
+        agregarIncidente(19.43841605987797, -99.1473927073038, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:43:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
+        agregarIncidente(19.474749236091412, -99.15395256914854, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 15:53:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PRO-HOGAR");
+        agregarIncidente(19.42368910881359, -99.17381278587816, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:02:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
+        agregarIncidente(19.489632380608732, -99.14431336001168, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN BARTOLO ATEPEHUACAN");
+        agregarIncidente(19.41313672536086, -99.17989751451428, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:15:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CONDESA");
+        agregarIncidente(19.34038298073737, -99.25167016689574, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:17:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> VILLA VERDUN");
+        agregarIncidente(19.436910609895406, -99.18297209873626, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 16:50:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANZURES");
+        agregarIncidente(19.432606865928374, -99.14522504988798, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:18:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
+        agregarIncidente(19.446714118579116, -99.20177959093101, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:35:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
+        agregarIncidente(19.448388135064278, -99.17350562540814, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:36:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
+        agregarIncidente(19.431124572236737, -99.16649522625043, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:54:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CUAUHTEMOC");
+        agregarIncidente(19.452288776345792, -99.18608567190937, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 17:57:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TACUBA");
+        agregarIncidente(19.41152208954622, -99.17680969675875, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:05:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO CONDESA");
+        agregarIncidente(19.44482828233536, -99.19911929617149, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:20:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
+        agregarIncidente(19.44582255114838, -99.19895855302366, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 18:40:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPO");
+        agregarIncidente(19.453322108291253, -99.1917936749875, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 22:48:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> SAN JUANICO");
+        agregarIncidente(19.446273518406354, -99.1826205700072, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-11 00:00:00 23:57:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> MARIANO ESCOBEDO");
+        agregarIncidente(19.52386713309925, -99.15290292200851, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:14:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SANTIAGO ATEPETLAC");
+        agregarIncidente(19.481422914610086, -99.178857901272, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:15:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SANTO TOMAS");
+        agregarIncidente(19.446273527995814, -99.18261104317325, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 00:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TORRE BLANCA");
+        agregarIncidente(19.43430522178122, -99.20250729793253, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 07:41:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POLANCO 2da. SECCION");
+        agregarIncidente(19.44528590848502, -99.19379438368239, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 08:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> PENSIL SUR");
+        agregarIncidente(19.448753375709195, -99.17894592606663, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 08:49:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
+        agregarIncidente(19.4238925784695, -99.14817975290437, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 13:24:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.42235842416106, -99.19385291679887, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 15:26:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC");
+        agregarIncidente(19.484538385670877, -99.20655281625791, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:45:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN JUAN TLIHUACA");
+        agregarIncidente(19.513879859169776, -99.14336271927458, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:54:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> NUEVA VALLEJO");
+        agregarIncidente(19.396408224354868, -99.1393452014978, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 16:58:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> ALAMOS");
+        agregarIncidente(19.361912442386547, -99.26876641939126, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 15:44:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> SANTA FE");
+        agregarIncidente(19.410135527700643, -99.22155538300066, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 22:56:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
+        agregarIncidente(19.443386188511397, -99.15852436426891, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-12 00:00:00 23:03:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.302218579590313, -99.14281565967944, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-13 00:00:00 01:05:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> EJIDO VIEJO SANTA URSULA");
+        agregarIncidente(19.40731595130814, -99.22152299084206, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-13 00:00:00 07:50:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC Ira. SECCION");
+        agregarIncidente(19.339026291079378, -99.20168501148856, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 17:23:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> ERMITA TIZAPAN");
+        agregarIncidente(19.467151071142222, -99.12799090685455, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 19:59:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> VALLEJO");
+        agregarIncidente(19.341539619409666, -99.17448731518134, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-14 00:00:00 21:31:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> ROMERO DE TERREROS");
+        agregarIncidente(19.394245708509143, -99.15379100626102, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 00:32:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
+        agregarIncidente(19.423802237175927, -99.14814156881839, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 11:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.418273743043283, -99.19371472067375, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 14:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC Ira. SECCION");
+        agregarIncidente(19.422860638341568, -99.17069707183919, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 17:18:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> JUAREZ");
+        agregarIncidente(19.394187739459152, -99.04480970103228, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 17:22:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> JUAN ESCUTIA");
+        agregarIncidente(19.471888062063247, -99.18839483457734, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 18:41:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NEXTENGO");
+        agregarIncidente(19.42471671017786, -99.19425578805489, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-15 00:00:00 19:59:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE CHAPULTEPEC Ira. SECCION");
+        agregarIncidente(19.39199407906896, -99.18439802376291, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 15:46:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN PEDRO DE LOS PINOS");
+        agregarIncidente(19.434857223839444, -99.16619419232, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 17:52:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CUAUHTEMOC");
+        agregarIncidente(19.28565311952302, -99.14275370393526, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 22:36:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> GUADALUPE");
+        agregarIncidente(19.42815302110006, -99.20859617070005, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-16 00:00:00 22:44:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
+        agregarIncidente(19.440176916028125, -99.15973111403484, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 16:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SAN RAFAEL");
+        agregarIncidente(19.37979647914393, -99.17241391363437, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 17:18:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
+        agregarIncidente(19.437970181257956, -99.22881408069985, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 18:15:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE SOTELO");
+        agregarIncidente(19.431083932550372, -99.12738154424235, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 23:04:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
+        agregarIncidente(19.4843174469147, -99.12110532859262, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-17 00:00:00 23:06:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> TEPEYAC INSURGENTES");
+        agregarIncidente(19.537681366827034, -99.14627197390458, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 00:36:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> ARBOLILLO III");
+        agregarIncidente(19.386096222513398, -99.18093441115441, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 00:44:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NAPOLES");
+        agregarIncidente(19.489594688608843, -99.18568037795208, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 01:35:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MARCOS");
+        agregarIncidente(19.36733997037868, -99.12005693252308, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 07:41:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
+        agregarIncidente(19.42337632364726, -99.1495604856178, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 07:45:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.47842371382834, -99.12330208781036, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 08:14:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> INDUSTRIAL");
+        agregarIncidente(19.39756842274827, -99.18601385909402, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 08:33:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> TACUBAYA");
+        agregarIncidente(19.388733235661455, -99.18280392885393, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 09:28:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN PEDRO DE LOS PINOS");
+        agregarIncidente(19.372267064051666, -99.20827737232977, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 17:36:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> HOGAR Y REDENCION");
+        agregarIncidente(19.414006150433938, -99.1685447102746, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 21:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO CUAUHTEMOC");
+        agregarIncidente(19.425878858857075, -99.0975906896714, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 22:05:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> MOCTEZUMA 2da. SESION");
+        agregarIncidente(19.195354128954037, -99.0966264472305, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 22:29:00<br><b>Alcaldía:</b> MILPA ALTA<br><b>Colonia:</b> SAN SALVADOR CUAUHTENCO");
+        agregarIncidente(19.394164314910224, -99.2512193936346, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-18 00:00:00 23:53:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
+        agregarIncidente(19.343469223274674, -99.18798043125207, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 06:51:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> CHIMALISTAC");
+        agregarIncidente(19.285667240564067, -99.2411362553337, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 09:33:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> PEDREGAL DE SAN NICOLAS 1ra. SECCION");
+        agregarIncidente(19.3904464129186, -99.04434201943886, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 11:49:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> JUAN ESCUTIA");
+        agregarIncidente(19.413181143333087, -99.16147636763759, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 12:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
+        agregarIncidente(19.391096323487623, -99.16894968076389, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 13:39:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DEL VALLE NORTE");
+        agregarIncidente(19.239556848376754, -99.16031632290844, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 17:40:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN ANDRES TOTOLTEPEC");
+        agregarIncidente(19.50217147200514, -99.20514567051464, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 18:06:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PRADOS DEL ROSARIO UH. TRABAJADORES DE PEMEX");
+        agregarIncidente(19.288177747261006, -99.12612850314476, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 20:16:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> NARCISO MENDOZA");
+        agregarIncidente(19.40701157201529, -99.16827081579994, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 22:57:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO");
+        agregarIncidente(19.431216676127367, -99.18345154578819, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-19 00:00:00 23:31:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> RINCON DEL BOSQUE POLANCO V SECCION");
+        agregarIncidente(19.415093659287383, -99.1439998108077, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 01:27:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.443017243299714, -99.1567044131861, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 02:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.364624690227263, -99.14994484493255, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 02:40:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES SUR");
+        agregarIncidente(19.425668006728067, -99.1540777428672, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 03:10:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
+        agregarIncidente(19.379841683545887, -99.1723949152387, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 04:08:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
+        agregarIncidente(19.360621453277513, -99.27987625837474, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 09:27:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> SANTA FE");
+        agregarIncidente(19.41614780202672, -99.14800128185998, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 09:29:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.33691158457832, -99.20166337376537, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 13:52:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> TIZAPAN");
+        agregarIncidente(19.397793319391383, -99.1094313708444, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-20 00:00:00 19:17:00<br><b>Alcaldía:</b> IZTACALCO<br><b>Colonia:</b> GRANJAS MEXICO");
+        agregarIncidente(19.3982998582748, -99.1472041643536, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-21 00:00:00 18:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE PONIENTE");
+        agregarIncidente(19.41261287948044, -99.17019108006278, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-21 00:00:00 22:25:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> HIPODROMO");
+        agregarIncidente(19.323235707032257, -99.15832246855865, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 09:57:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> AJUSCO");
+        agregarIncidente(19.413089617421235, -99.14115961866162, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 12:00:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
+        agregarIncidente(19.328396991642563, -99.04052675992725, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 15:13:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> DESARROLLO URBANO QUETZALCOATL");
+        agregarIncidente(19.37455389232109, -99.17342732422179, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 16:30:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> TLACOQUEMECATL");
+        agregarIncidente(19.44280176759521, -99.14409091613526, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:13:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
+        agregarIncidente(19.440847105154482, -99.1776321261644, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:22:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> ANAHUAC Ira. SECCION");
+        agregarIncidente(19.415102346734653, -99.15539176605733, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:25:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA");
+        agregarIncidente(19.407920389455477, -99.1410503871201, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
+        agregarIncidente(19.36599828931703, -99.2422920572783, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:44:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> ESTADO DE HIDALGO");
+        agregarIncidente(19.364597203984555, -99.17088391536794, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 17:47:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE SUR");
+        agregarIncidente(19.41329409342217, -99.14544601662114, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 18:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.41355326342689, -99.14903715340657, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 18:57:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.34994645445086, -99.00568420297589, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 19:35:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SANTIAGO ACAHUALTEPEC 2da. AMPLIACION");
+        agregarIncidente(19.31834542629324, -99.25500627534561, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 22:36:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> LAS CRUCES");
+        agregarIncidente(19.283531495621972, -99.22206031552383, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-22 00:00:00 23:28:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> TERRITORIO TORRES HEROES DE PADIERNA");
+        agregarIncidente(19.362162692979688, -99.1648539814267, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 00:10:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> XOCO");
+        agregarIncidente(19.28400671244947, -99.22513507746895, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 06:42:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> HEROES DE PADIERNA");
+        agregarIncidente(19.29992002538141, -99.23348536595887, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 07:01:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN NICOLAS TOTOLAPAN");
+        agregarIncidente(19.490754160366137, -99.10288024304415, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 13:58:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LA DINAMITA");
+        agregarIncidente(19.33055752517949, -99.03770932772616, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 16:37:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> DESARROLLO URBANO QUETZALCOATL");
+        agregarIncidente(19.48216808117037, -99.17463739705174, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 21:55:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SANTO TOMAS");
+        agregarIncidente(19.32265641468266, -99.04814109970157, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-23 00:00:00 22:04:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> MIXCOATL");
+        agregarIncidente(19.33945957992122, -99.31122949572125, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 06:01:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> LOMA DEL PADRE");
+        agregarIncidente(19.418192331735813, -99.1562710224371, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 20:08:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
+        agregarIncidente(19.41390096481918, -99.1649917904184, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-24 00:00:00 20:36:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ROMA NORTE");
+        agregarIncidente(19.485611602982303, -99.10357262409906, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 07:51:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> CONSTITUCION DE LA REPUBLICA");
+        agregarIncidente(19.446132606333062, -99.17892399954404, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 08:18:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> MARINA NACIONAL");
+        agregarIncidente(19.40494744153399, -99.14064779726804, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 11:23:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ALGARIN");
+        agregarIncidente(19.453468257415835, -99.16244033777285, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 13:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.41951757118393, -99.1493759748105, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:14:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.393370909770923, -99.20666611784398, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:35:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> MOLINO DE SANTO DOMINGO");
+        agregarIncidente(19.330079194869004, -99.20182634843219, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:36:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> JARDINES DEL PEDREGAL");
+        agregarIncidente(19.41428745995984, -99.21837966951267, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:38:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
+        agregarIncidente(19.48868356865769, -99.13236272821882, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 18:45:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA");
+        agregarIncidente(19.446984061713714, -99.1465144398813, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 19:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> GUERRERO");
+        agregarIncidente(19.392140427013477, -99.25735904607265, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 21:22:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
+        agregarIncidente(19.38482214640491, -99.16154362634992, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-25 00:00:00 22:37:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE CENTRO");
+        agregarIncidente(19.420725983548895, -99.22251273971813, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 10:39:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC");
+        agregarIncidente(19.413967467054242, -99.13956018022303, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 14:42:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> OBRERA");
+        agregarIncidente(19.465685423921304, -99.1637006696706, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 14:48:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NUEVA SANTA MARIA");
+        agregarIncidente(19.280466201507963, -99.22339810932547, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:14:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> HEROES DE PADIERNA");
+        agregarIncidente(19.45555075667413, -99.19511182324653, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:18:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LEGARIA");
+        agregarIncidente(19.308432481466255, -99.17799317974885, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 15:53:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> PEDREGAL DE CARRAZCO");
+        agregarIncidente(19.386042432045134, -99.2558447824158, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 16:48:00<br><b>Alcaldía:</b> CUAJIMALPA<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
+        agregarIncidente(19.52090214351775, -99.15385325536054, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 17:43:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> GUADALUPE PROLETARIA");
+        agregarIncidente(19.466799637359333, -99.18886535711584, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 17:54:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> ANGEL ZIMBRON");
+        agregarIncidente(19.476535698307867, -99.2027979311396, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 19:04:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MIGUEL AMANTLA");
+        agregarIncidente(19.453884904345255, -99.16139274983898, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 20:04:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.397957810481614, -99.24617749660699, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 20:30:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> BOSQUE DE LAS LOMAS");
+        agregarIncidente(19.480536530278123, -99.20513747510803, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 21:43:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN ANTONIO");
+        agregarIncidente(19.358741218853307, -99.17068737954558, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 22:08:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> DEL CARMEN");
+        agregarIncidente(19.409407217597476, -99.09125644295766, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 22:55:00<br><b>Alcaldía:</b> VENUSTIANO CARRANZA<br><b>Colonia:</b> GENERAL IGNACIO ZARAGOZA");
+        agregarIncidente(19.484313346826102, -99.12708959252862, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:26:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LINDAVISTA SUR");
+        agregarIncidente(19.325320739676446, -99.22155504886452, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:42:00<br><b>Alcaldía:</b> MAGDALENA CONTRERAS<br><b>Colonia:</b> SAN JERONIMO LIDICE");
+        agregarIncidente(19.514171702915235, -99.20610435235344, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-26 00:00:00 23:50:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> EL ROSARIO");
+        agregarIncidente(19.339670208732127, -99.23732150936543, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 00:40:00<br><b>Alcaldía:</b> ALVARO OBREGON<br><b>Colonia:</b> LA JOYITA");
+        agregarIncidente(19.51218604644812, -99.19570385230956, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 16:29:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> ROSARIO");
+        agregarIncidente(19.485380585859744, -99.19687229694368, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 16:36:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> PETROLERA");
+        agregarIncidente(19.50656747180001, -99.1933526236492, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-27 00:00:00 19:36:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> SAN MARTIN XOCHINAHUAC");
+        agregarIncidente(19.467363735522294, -99.1455704050671, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 07:52:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> LA RAZA");
+        agregarIncidente(19.462711603264037, -99.14302232498848, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 08:31:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SAN SIMON TOLNAHUAC");
+        agregarIncidente(19.52054048756119, -99.15405306830766, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 16:00:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> GUADALUPE PROLETARIA");
+        agregarIncidente(19.365256664058865, -99.15071671616815, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 19:43:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> PORTALES NORTE");
+        agregarIncidente(19.435929461705033, -99.12512759855501, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 19:46:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> CENTRO");
+        agregarIncidente(19.42257383385807, -99.21900989107408, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 20:11:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> LOMAS DE CHAPULTEPEC SECCION I");
+        agregarIncidente(19.457836628716276, -99.17806982709996, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 21:32:00<br><b>Alcaldía:</b> MIGUEL HIDALGO<br><b>Colonia:</b> POPOTLA");
+        agregarIncidente(19.363238802324716, -99.11734015064097, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-28 00:00:00 22:16:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> SECTOR POPULAR");
+        agregarIncidente(19.345979619855623, -99.1512702716307, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 01:06:00<br><b>Alcaldía:</b> COYOACAN<br><b>Colonia:</b> BARRIO SAN LUCAS");
+        agregarIncidente(19.460026480676788, -99.16552429979728, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 02:20:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> NUEVA SANTA MARIA");
+        agregarIncidente(19.410533241791576, -99.15094888115478, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 07:32:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> DOCTORES");
+        agregarIncidente(19.263275523868376, -99.16540200034582, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 08:19:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> SAN PEDRO MARTIR");
+        agregarIncidente(19.397605669027556, -99.16622300563711, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 08:35:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> DEL VALLE NORTE");
+        agregarIncidente(19.29163105504673, -99.11059795915307, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 11:37:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> RINCONADA COAPA 1ra. SECCION");
+        agregarIncidente(19.403301045071434, -99.1307029532184, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 16:54:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> ASTURIAS");
+        agregarIncidente(19.376044697479365, -99.14260371245805, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 16:59:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN SIMON TICUMAC");
+        agregarIncidente(19.474241100184482, -99.2176499543646, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:28:00<br><b>Alcaldía:</b> AZCAPOTZALCO<br><b>Colonia:</b> AMPL. SAN PEDRO XALPA");
+        agregarIncidente(19.384246694039206, -99.14744865971917, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:31:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> VERTIZ NARVARTE");
+        agregarIncidente(19.297135621659088, -99.12345123207925, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 17:39:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> RESIDENCIAL ACOXPA");
+        agregarIncidente(19.476131085784854, -99.06600478479974, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 19:11:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> LA PRADERA");
+        agregarIncidente(19.369543702698742, -99.18615344420418, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 19:45:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SAN JOSE INSURGENTES");
+        agregarIncidente(19.2921472666209, -99.12303822150238, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-29 00:00:00 21:21:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> VILLA COAPA");
+        agregarIncidente(19.449780531067486, -99.16304639902714, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 07:40:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> SANTA MARIA LA RIBERA");
+        agregarIncidente(19.294934951690724, -99.11668222994435, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 09:57:00<br><b>Alcaldía:</b> TLALPAN<br><b>Colonia:</b> GRANJAS COAPA");
+        agregarIncidente(19.459799091158033, -99.13452110722432, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 11:09:00<br><b>Alcaldía:</b> CUAUHTEMOC<br><b>Colonia:</b> PERALVILLO");
+        agregarIncidente(19.374420646660152, -99.16107628418804, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 11:34:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> SANTA CRUZ ATOYAC");
+        agregarIncidente(19.38746368604087, -99.14779439907758, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 15:17:00<br><b>Alcaldía:</b> BENITO JUAREZ<br><b>Colonia:</b> NARVARTE ORIENTE");
+        agregarIncidente(19.504272816866326, -99.15498115606, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 18:49:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> UH. PATERA VALLEJO");
+        agregarIncidente(19.46507969081947, -99.08500861920449, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 20:30:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> PUEBLO SAN JUAN DE ARAGON");
+        agregarIncidente(19.45505351287331, -99.09294923458522, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:01:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> SAN JUAN DE ARAGON");
+        agregarIncidente(19.38704210693523, -99.08682510705431, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:29:00<br><b>Alcaldía:</b> IZTAPALAPA<br><b>Colonia:</b> PASEOS DE CHURUBUSCO");
+        agregarIncidente(19.528349599982768, -99.15284994904931, "<b>Incidente:</b> CAIDA DE ARBOLES Y/O RAMAS<br><b>Fecha:</b> 2026-06-30 00:00:00 22:30:00<br><b>Alcaldía:</b> GUSTAVO A. MADERO<br><b>Colonia:</b> ACUEDUCTO DE GUADALUPE");
+
+        var alcaldiaSelect = document.getElementById('alcaldiaSelect');
+        var coloniaInput = document.getElementById('coloniaInput');
+        var coloniasList = document.getElementById('coloniasList');
+        var resultCount = document.getElementById('resultCount');
+        var resetBtn = document.getElementById('resetBtn');
+
+        function poblarAlcaldias() {
+            var setAlc = new Set();
+            incidentes.forEach(function(item) {
+                if (item.alcaldia) setAlc.add(item.alcaldia);
+            });
+            Array.from(setAlc).sort().forEach(function(alc) {
+                var opt = document.createElement('option');
+                opt.value = alc;
+                opt.textContent = alc;
+                alcaldiaSelect.appendChild(opt);
+            });
+        }
+
+        function actualizarSugerenciasColonias() {
+            var alcFiltro = normalizarTexto(alcaldiaSelect.value);
+            var setCol = new Set();
+            incidentes.forEach(function(item) {
+                if (!alcFiltro || item.alcaldiaNorm === alcFiltro) {
+                    if (item.colonia) setCol.add(item.colonia);
+                }
+            });
+            coloniasList.innerHTML = '';
+            Array.from(setCol).sort().forEach(function(col) {
+                var opt = document.createElement('option');
+                opt.value = col;
+                coloniasList.appendChild(opt);
+            });
+        }
+
+        function filtrarMarcadores() {
+            var alcFiltro = normalizarTexto(alcaldiaSelect.value);
+            var colFiltro = normalizarTexto(coloniaInput.value);
+
+            markersLayer.clearLayers();
+            var filtrados = [];
+
+            incidentes.forEach(function(item) {
+                var coincideAlc = !alcFiltro || item.alcaldiaNorm === alcFiltro;
+                var coincideCol = !colFiltro || item.coloniaNorm.indexOf(colFiltro) !== -1;
+
+                if (coincideAlc && coincideCol) {
+                    item.marker.addTo(markersLayer);
+                    filtrados.push(item);
+                }
+            });
+
+            resultCount.textContent = filtrados.length + (filtrados.length === 1 ? ' reporte' : ' reportes');
+
+            if (filtrados.length === 1) {
+                map.setView([filtrados[0].lat, filtrados[0].lng], 15);
+                filtrados[0].marker.openPopup();
+            } else if (filtrados.length > 1) {
+                var bounds = L.latLngBounds(filtrados.map(function(i) { return [i.lat, i.lng]; }));
+                map.fitBounds(bounds.pad(0.2));
+            } else if (!alcFiltro && !colFiltro) {
+                map.setView([19.4326, -99.1332], 11);
+            }
+        }
+
+        alcaldiaSelect.addEventListener('change', function() {
+            actualizarSugerenciasColonias();
+            filtrarMarcadores();
+        });
+
+        coloniaInput.addEventListener('input', filtrarMarcadores);
+
+        resetBtn.addEventListener('click', function() {
+            alcaldiaSelect.value = '';
+            coloniaInput.value = '';
+            actualizarSugerenciasColonias();
+            filtrarMarcadores();
+        });
+
+        poblarAlcaldias();
+        actualizarSugerenciasColonias();
+        filtrarMarcadores();
     </script>
 </body>
 </html>
