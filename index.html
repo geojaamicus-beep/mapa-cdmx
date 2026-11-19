@@ -128,7 +128,14 @@
             var alcaldia = matchAlcaldia ? matchAlcaldia[1].trim() : '';
             var colonia = matchColonia ? matchColonia[1].trim() : '';
 
-            var marker = L.marker([lat, lng]).bindPopup(popupHtml);
+            var googleMapsUrl = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+            var popupConEnlace = popupHtml +
+                '<br><br><a href="' + googleMapsUrl + '" target="_blank" rel="noopener noreferrer" ' +
+                'style="display:inline-block;padding:5px 9px;background:#0f766e;color:#ffffff;' +
+                'text-decoration:none;border-radius:6px;font-size:12px;font-weight:bold;">' +
+                'Ver en Google Maps / Satélite</a>';
+
+            var marker = L.marker([lat, lng]).bindPopup(popupConEnlace);
 
             incidentes.push({
                 lat: lat,
