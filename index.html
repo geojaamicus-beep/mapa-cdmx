@@ -430,6 +430,15 @@
             });
         }
 
+        function estaEnCDMX(item) {
+            return (
+                typeof item.lat === 'number' &&
+                typeof item.lng === 'number' &&
+                item.lat >= 19.0 && item.lat <= 19.65 &&
+                item.lng >= -99.45 && item.lng <= -98.90
+            );
+        }
+
         function filtrarMarcadores() {
             var alcFiltro = normalizarTexto(alcaldiaSelect.value);
             var colFiltro = normalizarTexto(coloniaInput.value);
@@ -449,11 +458,13 @@
 
             resultCount.textContent = filtrados.length + (filtrados.length === 1 ? ' reporte' : ' reportes');
 
-            if (filtrados.length === 1) {
-                map.setView([filtrados[0].lat, filtrados[0].lng], 15);
-                filtrados[0].marker.openPopup();
-            } else if (filtrados.length > 1) {
-                var bounds = L.latLngBounds(filtrados.map(function(i) { return [i.lat, i.lng]; }));
+            var filtradosCDMX = filtrados.filter(estaEnCDMX);
+
+            if (filtradosCDMX.length === 1) {
+                map.setView([filtradosCDMX[0].lat, filtradosCDMX[0].lng], 15);
+                filtradosCDMX[0].marker.openPopup();
+            } else if (filtradosCDMX.length > 1) {
+                var bounds = L.latLngBounds(filtradosCDMX.map(function(i) { return [i.lat, i.lng]; }));
                 map.fitBounds(bounds.pad(0.2));
             } else if (!alcFiltro && !colFiltro) {
                 map.setView([19.4326, -99.1332], 11);
