@@ -567,5 +567,37 @@
         actualizarSugerenciasColonias();
         filtrarMarcadores();
     </script>
+    <!-- Contador de visitas (GoatCounter) -->
+    <script data-goatcounter="https://mapa-arboles-cdmx.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+    <script>
+        (function() {
+            var metaCard = document.querySelector('.meta-card');
+            if (!metaCard) return;
+
+            var counterBox = document.createElement('div');
+            counterBox.style.cssText = 'margin-top:8px;padding-top:7px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#334155;';
+            counterBox.innerHTML = '<span>👁️ Visitas al mapa</span><span id="visitCount" style="background:#f0f9ff;color:#0369a1;font-weight:bold;padding:2px 8px;border-radius:999px;border:1px solid #bae6fd;">Cargando...</span>';
+            metaCard.appendChild(counterBox);
+
+            function actualizarContador() {
+                var badge = document.getElementById('visitCount');
+                if (!badge) return;
+                fetch('https://mapa-arboles-cdmx.goatcounter.com/counter/TOTAL.json')
+                    .then(function(resp) {
+                        if (resp.status === 404) return { count: '1' };
+                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                        return resp.json();
+                    })
+                    .then(function(data) {
+                        badge.textContent = data.count || '1';
+                    })
+                    .catch(function() {
+                        badge.textContent = '—';
+                    });
+            }
+
+            setTimeout(actualizarContador, 1800);
+        })();
+    </script>
 </body>
 </html>
