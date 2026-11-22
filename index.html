@@ -627,5 +627,63 @@
             }
         })();
     </script>
+    <!-- Módulo de Cartografía Colaborativa (Google Forms) -->
+    <script>
+        (function() {
+            var FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLSeBfnKYTUJ_MIWY8RVIua7eWfgsXvcjRNKXxxRTsx4imxyMRQ/viewform';
+
+            // 1. Agregar botón de verificación prellenada en cada uno de los marcadores
+            if (typeof incidentes !== 'undefined' && Array.isArray(incidentes)) {
+                incidentes.forEach(function(item) {
+                    var popup = item.marker && item.marker.getPopup();
+                    if (!popup) return;
+
+                    var contenidoActual = popup.getContent();
+                    var matchFecha = contenidoActual.match(/<b>Fecha:<\/b>\s*([^<]+)/i);
+                    var fechaLimpia = matchFecha ? matchFecha[1].replace(' 00:00:00', '').trim() : '';
+                    var coordsYFecha = item.lat.toFixed(6) + ', ' + item.lng.toFixed(6) + (fechaLimpia ? ' | ' + fechaLimpia : '');
+
+                    var params = new URLSearchParams();
+                    params.set('usp', 'pp_url');
+                    params.set('entry.790672905', 'Verificación de árbol ya registrado en el mapa');
+                    params.set('entry.439489583', item.alcaldia || '');
+                    params.set('entry.35145427', item.colonia || '');
+                    params.set('entry.108111494', coordsYFecha);
+
+                    var urlValidar = FORM_BASE + '?' + params.toString();
+                    var botonValidar =
+                        '<br><a href="' + urlValidar + '" target="_blank" rel="noopener noreferrer" ' +
+                        'style="display:inline-block;margin-top:6px;padding:5px 9px;background:#d97706;color:#ffffff;' +
+                        'text-decoration:none;border-radius:6px;font-size:12px;font-weight:bold;">' +
+                        '🌳 ¿Viste este árbol? Validar / Comentar ↗</a>';
+
+                    item.marker.setPopupContent(contenidoActual + botonValidar);
+                });
+            }
+
+            // 2. Botón flotante para reportar nuevos casos (sin recargar la barra lateral)
+            if (typeof map !== 'undefined') {
+                var paramsNuevo = new URLSearchParams();
+                paramsNuevo.set('usp', 'pp_url');
+                paramsNuevo.set('entry.790672905', 'Reporte de nuevo caso no registrado');
+                var urlNuevoCaso = FORM_BASE + '?' + paramsNuevo.toString();
+
+                var colabControl = L.control({ position: 'topleft' });
+                colabControl.onAdd = function() {
+                    var div = L.DomUtil.create('div', 'colab-control');
+                    div.style.marginTop = '8px';
+                    div.innerHTML =
+                        '<a href="' + urlNuevoCaso + '" target="_blank" rel="noopener noreferrer" ' +
+                        'style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:#d97706;color:#ffffff;' +
+                        'text-decoration:none;border-radius:10px;font-size:12px;font-weight:bold;' +
+                        'box-shadow:0 4px 14px rgba(0,0,0,0.22);border:2px solid #ffffff;white-space:nowrap;">' +
+                        '🌳 Reportar nuevo árbol caído ↗</a>';
+                    L.DomEvent.disableClickPropagation(div);
+                    return div;
+                };
+                colabControl.addTo(map);
+            }
+        })();
+    </script>
 </body>
 </html>
