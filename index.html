@@ -599,5 +599,29 @@
             setTimeout(actualizarContador, 1800);
         })();
     </script>
+    <!-- Apartado de Datos Abiertos y Transparencia -->
+    <script>
+        (function() {
+            var sidebar = document.querySelector('.right-sidebar');
+            var metaCard = document.querySelector('.meta-card');
+            if (!sidebar) return;
+
+            var dataCard = document.createElement('section');
+            dataCard.setAttribute('aria-label', 'Datos abiertos y transparencia');
+            dataCard.style.cssText = 'background:rgba(255,255,255,0.96);padding:12px 14px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.16);border-top:4px solid #15803d;font-size:11.5px;line-height:1.45;color:#1e293b;';
+            dataCard.innerHTML =
+                '<h4 style="margin:0 0 5px 0;font-size:13px;color:#0f172a;">📂 Datos Abiertos y Transparencia</h4>' +
+                '<p style="margin:0 0 9px 0;color:#334155;">Accede a las respuestas oficiales vía transparencia (C5, HCB, SGIRPC, SEDEMA y las 16 alcaldías) para reutilizar las bases de datos.</p>' +
+                '<a href="https://drive.google.com/drive/folders/1jTMUknBvbhYTshPynPwxJ02bjG-fNIXy?usp=sharing" target="_blank" rel="noopener noreferrer" ' +
+                'style="display:block;text-align:center;padding:8px 10px;background:#15803d;color:#ffffff;text-decoration:none;border-radius:8px;font-size:12px;font-weight:bold;">' +
+                'Consultar archivos oficiales ↗</a>';
+
+            if (metaCard) {
+                sidebar.insertBefore(dataCard, metaCard);
+            } else {
+                sidebar.appendChild(dataCard);
+            }
+        })();
+    </script>
 </body>
 </html>
